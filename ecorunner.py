@@ -13,7 +13,7 @@ window = pyglet.window.Window(width=480, height=270, caption="Écran titre")
 background = pyglet.resource.image('assets/images/background.jpg')
 
 # Charge une police personnalisée
-pyglet.font.add_file(r'C:\Users\laura\ecorunner\assets\fonts\BebasNeue-Regular.ttf')
+pyglet.font.add_file(r'assets/fonts/BebasNeue-Regular.ttf')
 
 # Crée le titre du jeu
 title = pyglet.text.Label(
