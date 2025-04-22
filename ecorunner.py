@@ -1,105 +1,102 @@
 import pyglet
+from pyglet import shapes
+from pyglet.window import mouse
 
-# Police personnalisée
-pyglet.font.add_file('assets/fonts/BebasNeue-Regular.ttf')
-FONT_NAME = "Bebas Neue"
+# Création de la fenêtre
+fenetre = pyglet.window.Window(480, 270, "Eco Runner")
 
-# Fenêtre
-window = pyglet.window.Window(width=480, height=270, caption="Écran titre")
+# Chargement du fond
+fond = pyglet.image.load('assets/images/background.png')
+sprite_fond = pyglet.sprite.Sprite(fond)
 
-# États
-current_screen = "menu"
-music_on = True
-sound_on = True
+# Variables d'état
+musique_active = True
+son_actif = True
+ecran_actuel = "menu_principal"
 
-# Images
-background = pyglet.resource.image('assets/images/splashScreen.png')
-img_options_btn = pyglet.resource.image('assets/images/options.png')
+# Chargement du titre des options
+titre_options = pyglet.sprite.Sprite(pyglet.image.load('assets/images/titre_options.png'), x=120, y=180)
 
-# Batch principal
-batch = pyglet.graphics.Batch()
+# Chargement des images pour les boutons
+image_musique_on = pyglet.image.load('assets/images/musique_on_btn.png')
+image_musique_off = pyglet.image.load('assets/images/musique_off_btn.png')
+image_son_on = pyglet.image.load('assets/images/son_on_btn.png')
+image_son_off = pyglet.image.load('assets/images/son_off_btn.png')
+image_retour = pyglet.image.load('assets/images/retour_btn.png')
 
 # Sprites du menu principal
-sprite_nouvellepartie = pyglet.sprite.Sprite(pyglet.resource.image('assets/images/nouvellePartie.png'), x=330, y=150, batch=batch)
-sprite_options = pyglet.sprite.Sprite(img_options_btn, x=5, y=50, batch=batch)
-sprite_quitter = pyglet.sprite.Sprite(pyglet.resource.image('assets/images/quitter.png'), x=360, y=20, batch=batch)
+sprite_nouvelle_partie = pyglet.sprite.Sprite(pyglet.image.load('assets/images/nouvellePartie.png'), x=330, y=150)
+sprite_bouton_options = pyglet.sprite.Sprite(pyglet.image.load('assets/images/options.png'), x=5, y=50)
+sprite_quitter = pyglet.sprite.Sprite(pyglet.image.load('assets/images/quitter.png'), x=360, y=20)
 
-# Labels stylisés pour le menu options
-label_music = pyglet.text.Label("Musique : ON", font_name=FONT_NAME, font_size=22,
-                                x=240, y=160, anchor_x='center', anchor_y='center', color=(255, 255, 255, 255))
-label_sound = pyglet.text.Label("Son : ON", font_name=FONT_NAME, font_size=22,
-                                x=240, y=120, anchor_x='center', anchor_y='center', color=(255, 255, 255, 255))
-label_back = pyglet.text.Label("Retour", font_name=FONT_NAME, font_size=22,
-                               x=240, y=70, anchor_x='center', anchor_y='center', color=(255, 255, 255, 255))
+# Classe de bouton image
+class BoutonImage:
+    def __init__(self, image_on, image_off, x, y):
+        self.image_on = image_on
+        self.image_off = image_off
+        self.sprite = pyglet.sprite.Sprite(image_on, x=x, y=y)
+        self.active = True  # true = activé, false = désactivé
 
-# Fonction de dessin
-@window.event
+    def dessiner(self):
+        self.sprite.draw()
+
+    def basculer(self):
+        self.active = not self.active
+        self.sprite.image = self.image_on if self.active else self.image_off
+
+    def contient_point(self, x, y):
+        return (self.sprite.x <= x <= self.sprite.x + self.sprite.width and
+                self.sprite.y <= y <= self.sprite.y + self.sprite.height)
+
+# Boutons de l'écran options
+bouton_musique = BoutonImage(image_musique_on, image_musique_off, 150, 120)
+bouton_son = BoutonImage(image_son_on, image_son_off, 150, 80)
+bouton_retour = pyglet.sprite.Sprite(image_retour, x=150, y=30)
+
+# Gérer les clics souris
+@fenetre.event
+def on_mouse_press(x, y, bouton, modificateurs):
+    global ecran_actuel, musique_active, son_actif
+
+    if ecran_actuel == "menu_principal":
+        if sprite_nouvelle_partie.x <= x <= sprite_nouvelle_partie.x + sprite_nouvelle_partie.width and sprite_nouvelle_partie.y <= y <= sprite_nouvelle_partie.y + sprite_nouvelle_partie.height:
+            print("Nouvelle Partie")
+        elif sprite_bouton_options.x <= x <= sprite_bouton_options.x + sprite_bouton_options.width and sprite_bouton_options.y <= y <= sprite_bouton_options.y + sprite_bouton_options.height:
+            ecran_actuel = "options"
+        elif sprite_quitter.x <= x <= sprite_quitter.x + sprite_quitter.width and sprite_quitter.y <= y <= sprite_quitter.y + sprite_quitter.height:
+            pyglet.app.exit()
+
+    elif ecran_actuel == "options":
+        if bouton_musique.contient_point(x, y):
+            bouton_musique.basculer()
+            musique_active = bouton_musique.active
+            print("Musique activée" if musique_active else "Musique désactivée")
+        elif bouton_son.contient_point(x, y):
+            bouton_son.basculer()
+            son_actif = bouton_son.active
+            print("Son activé" if son_actif else "Son désactivé")
+        elif bouton_retour.x <= x <= bouton_retour.x + bouton_retour.width and bouton_retour.y <= y <= bouton_retour.y + bouton_retour.height:
+            ecran_actuel = "menu_principal"
+
+# Affichage
+@fenetre.event
 def on_draw():
-    window.clear()
-    background.blit(0, 0)
+    fenetre.clear()
+    sprite_fond.draw()
 
-    if current_screen == "menu":
-        batch.draw()
-    elif current_screen == "options":
-        draw_overlay()
-        label_music.draw()
-        label_sound.draw()
-        label_back.draw()
+    if ecran_actuel == "menu_principal":
+        sprite_nouvelle_partie.draw()
+        sprite_bouton_options.draw()
+        sprite_quitter.draw()
+    elif ecran_actuel == "options":
+        rectangle = shapes.Rectangle(0, 0, 480, 270, color=(0, 0, 0))
+        rectangle.opacity = 120
+        rectangle.draw()
 
-# Overlay sombre
-def draw_overlay():
-    overlay = pyglet.shapes.Rectangle(0, 0, window.width, window.height, color=(0, 0, 0))
-    overlay.opacity = 200
-    overlay.draw()
+        titre_options.draw()
+        bouton_musique.dessiner()
+        bouton_son.dessiner()
+        bouton_retour.draw()
 
-# Clics souris
-@window.event
-def on_mouse_press(x, y, button, modifiers):
-    global current_screen, music_on, sound_on
-
-    if button == pyglet.window.mouse.LEFT:
-        if current_screen == "menu":
-            if sprite_in_bounds(sprite_nouvellepartie, x, y):
-                start_game()
-            elif sprite_in_bounds(sprite_options, x, y):
-                current_screen = "options"
-            elif sprite_in_bounds(sprite_quitter, x, y):
-                pyglet.app.exit()
-
-        elif current_screen == "options":
-            if label_in_bounds(label_music, x, y):
-                music_on = not music_on
-                label_music.text = f"Musique : {'ON' if music_on else 'OFF'}"
-            elif label_in_bounds(label_sound, x, y):
-                sound_on = not sound_on
-                label_sound.text = f"Son : {'ON' if sound_on else 'OFF'}"
-            elif label_in_bounds(label_back, x, y):
-                current_screen = "menu"
-
-# Touche clavier
-@window.event
-def on_key_press(symbol, modifiers):
-    global current_screen
-    if symbol == pyglet.window.key.ENTER and current_screen == "menu":
-        start_game()
-    elif symbol == pyglet.window.key.ESCAPE and current_screen == "options":
-        current_screen = "menu"
-
-# Collision avec sprite
-def sprite_in_bounds(sprite, x, y):
-    return sprite.x <= x <= sprite.x + sprite.width and sprite.y <= y <= sprite.y + sprite.height
-
-# Collision avec label
-def label_in_bounds(label, x, y):
-    width = label.content_width
-    height = label.content_height
-    return (label.x - width // 2 <= x <= label.x + width // 2 and
-            label.y - height // 2 <= y <= label.y + height // 2)
-
-# Démarrer le jeu
-def start_game():
-    print("Le jeu commence ici !")
-    # Tu peux ici charger un nouvel écran ou scène de jeu
-
-# Lancer l’app
+# Lancer l'application
 pyglet.app.run()
