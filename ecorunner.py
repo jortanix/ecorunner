@@ -1,6 +1,6 @@
 import pyglet
 from pyglet import shapes
-from pyglet.window import mouse
+from pyglet.window import key, mouse
 
 # Création de la fenêtre
 fenetre = pyglet.window.Window(480, 270, "Eco Runner")
@@ -15,7 +15,7 @@ son_actif = True
 ecran_actuel = "menu_principal"
 
 # Chargement du titre des options
-titre_options = pyglet.sprite.Sprite(pyglet.image.load('assets/images/titre_options.png'), x=120, y=180)
+titre_options = pyglet.sprite.Sprite(pyglet.image.load('assets/images/titre_options.png'), x=157.5, y=200)
 
 # Chargement des images pour les boutons
 image_musique_on = pyglet.image.load('assets/images/musique_on_btn.png')
@@ -35,7 +35,7 @@ class BoutonImage:
         self.image_on = image_on
         self.image_off = image_off
         self.sprite = pyglet.sprite.Sprite(image_on, x=x, y=y)
-        self.active = True  # true = activé, false = désactivé
+        self.active = True
 
     def dessiner(self):
         self.sprite.draw()
@@ -48,10 +48,14 @@ class BoutonImage:
         return (self.sprite.x <= x <= self.sprite.x + self.sprite.width and
                 self.sprite.y <= y <= self.sprite.y + self.sprite.height)
 
-# Boutons de l'écran options
-bouton_musique = BoutonImage(image_musique_on, image_musique_off, 150, 120)
-bouton_son = BoutonImage(image_son_on, image_son_off, 150, 80)
-bouton_retour = pyglet.sprite.Sprite(image_retour, x=150, y=30)
+# Boutons communs
+bouton_musique = BoutonImage(image_musique_on, image_musique_off, 165, 130)
+bouton_son = BoutonImage(image_son_on, image_son_off, 165, 80)
+
+# Boutons spécifiques
+bouton_retour = pyglet.sprite.Sprite(image_retour, x=165, y=20)  # Options
+bouton_reprendre = pyglet.sprite.Sprite(image_retour, x=165, y=80)  # Pause
+bouton_accueil = pyglet.sprite.Sprite(image_retour, x=165, y=20)  # Pause
 
 # Gérer les clics souris
 @fenetre.event
@@ -61,6 +65,7 @@ def on_mouse_press(x, y, bouton, modificateurs):
     if ecran_actuel == "menu_principal":
         if sprite_nouvelle_partie.x <= x <= sprite_nouvelle_partie.x + sprite_nouvelle_partie.width and sprite_nouvelle_partie.y <= y <= sprite_nouvelle_partie.y + sprite_nouvelle_partie.height:
             print("Nouvelle Partie")
+            ecran_actuel = "jeu"
         elif sprite_bouton_options.x <= x <= sprite_bouton_options.x + sprite_bouton_options.width and sprite_bouton_options.y <= y <= sprite_bouton_options.y + sprite_bouton_options.height:
             ecran_actuel = "options"
         elif sprite_quitter.x <= x <= sprite_quitter.x + sprite_quitter.width and sprite_quitter.y <= y <= sprite_quitter.y + sprite_quitter.height:
@@ -70,13 +75,30 @@ def on_mouse_press(x, y, bouton, modificateurs):
         if bouton_musique.contient_point(x, y):
             bouton_musique.basculer()
             musique_active = bouton_musique.active
-            print("Musique activée" if musique_active else "Musique désactivée")
         elif bouton_son.contient_point(x, y):
             bouton_son.basculer()
             son_actif = bouton_son.active
-            print("Son activé" if son_actif else "Son désactivé")
         elif bouton_retour.x <= x <= bouton_retour.x + bouton_retour.width and bouton_retour.y <= y <= bouton_retour.y + bouton_retour.height:
             ecran_actuel = "menu_principal"
+
+    elif ecran_actuel == "pause":
+        if bouton_musique.contient_point(x, y):
+            bouton_musique.basculer()
+            musique_active = bouton_musique.active
+        elif bouton_son.contient_point(x, y):
+            bouton_son.basculer()
+            son_actif = bouton_son.active
+        elif bouton_reprendre.x <= x <= bouton_reprendre.x + bouton_reprendre.width and bouton_reprendre.y <= y <= bouton_reprendre.y + bouton_reprendre.height:
+            ecran_actuel = "jeu"
+        elif bouton_accueil.x <= x <= bouton_accueil.x + bouton_accueil.width and bouton_accueil.y <= y <= bouton_accueil.y + bouton_accueil.height:
+            ecran_actuel = "menu_principal"
+
+# Touche Échap pour mettre en pause
+@fenetre.event
+def on_key_press(symbol, modifiers):
+    global ecran_actuel
+    if symbol == key.ESCAPE and ecran_actuel == "jeu":
+        ecran_actuel = "pause"
 
 # Affichage
 @fenetre.event
@@ -88,15 +110,33 @@ def on_draw():
         sprite_nouvelle_partie.draw()
         sprite_bouton_options.draw()
         sprite_quitter.draw()
+
     elif ecran_actuel == "options":
         rectangle = shapes.Rectangle(0, 0, 480, 270, color=(0, 0, 0))
         rectangle.opacity = 120
         rectangle.draw()
-
         titre_options.draw()
         bouton_musique.dessiner()
         bouton_son.dessiner()
         bouton_retour.draw()
+
+    elif ecran_actuel == "jeu":
+        # Affichage du jeu ici (placeholder pour ton futur jeu)
+        label = pyglet.text.Label("JEU EN COURS...", font_size=20, x=240, y=135, anchor_x='center', anchor_y='center')
+        label.draw()
+
+    elif ecran_actuel == "pause":
+        rectangle = shapes.Rectangle(0, 0, 480, 270, color=(50, 50, 50))
+        rectangle.opacity = 180
+        rectangle.draw()
+
+        label = pyglet.text.Label("PAUSE", font_size=24, x=240, y=200, anchor_x='center', anchor_y='center')
+        label.draw()
+
+        bouton_musique.dessiner()
+        bouton_son.dessiner()
+        bouton_reprendre.draw()
+        bouton_accueil.draw()
 
 # Lancer l'application
 pyglet.app.run()
