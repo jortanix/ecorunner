@@ -1,8 +1,9 @@
 import pyglet
 
 # CONSTANTS
-MAX_FPS = 500
+MAX_FPS = 144
 MOVEMENT_SPEED = 100*5
+MOVEMENT_SPEED_2 = 10000
 DECELARATION_TIME = .5
 MAX_X_VELOCITY = (-1*MOVEMENT_SPEED*(1/MAX_FPS), 1*MOVEMENT_SPEED*(1/MAX_FPS))
 SCALE = 2
@@ -26,3 +27,4 @@ def clamp(v, MIN, MAX):
     elif v < MIN:
         return MIN    
     return v
+

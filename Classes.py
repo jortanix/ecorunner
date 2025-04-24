@@ -30,6 +30,9 @@ class Humanoid():
         self.__current_size = 1
         self.__current_rot = 1
 
+    def getPixelSize(self):
+        return self.__state_sprites[self.__state].width
+
     # modifie la taille (indirectement)
     def setSize(self, NEW_SCALE):
         self.__current_size = NEW_SCALE
